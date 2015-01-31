@@ -12,7 +12,7 @@ def adot(a,om_rad,om_mat,om_de,w):
     factor is 'a'
 
     """
-    return H0*np.sqrt( om_rad/a**2 + om_mat/a + om_de/a**(1+3*w) + (1 - om_rad - om_de - om_mat) )
+    return H0*np.sqrt( om_rad/a**2 + om_mat/a + om_de/a**(1+3*w) + (1-(om_rad+om_de+om_mat)) )
 
 def time(a,om_rad,om_mat,om_de,w):
     """Calculates the time a universe would have when the scale factor is
@@ -64,8 +64,9 @@ if __name__ == '__main__':
         #Note to future generations:
         # We need to change how the limits on 'As' are calculated based on which
         # universe we're in. The bulk beings are closing the tesseract!
-        
-        As = np.linspace(0,2,1000)
+            
+        if i==1: As = np.linspace(0,2,1000)
+        else: As = np.linspace(0,20,1000)
         times = np.array([time(a,om_rad[i],om_mat[i],om_de[i],w[i]) for a in As])
         hubbles = hubble(As,om_rad[i],om_mat[i],om_de[i],w[i])
         densitys = density(As,om_rad[i],om_mat[i],om_de[i],w[i])
@@ -78,7 +79,7 @@ if __name__ == '__main__':
         plt.legend(loc='best')
         plt.savefig(uni[i]+'_scale'+suffix)
         plt.close()
-    
+      
         plt.semilogy(times/gyr,70*hubbles/H0,label=uni[i])
         plt.scatter(0,70,label='Today')
         plt.title('Hubble "Constant" vs. Time')
@@ -87,7 +88,7 @@ if __name__ == '__main__':
         plt.legend(loc='best')
         plt.savefig(uni[i]+'_hubble'+suffix)
         plt.close()
-        
+          
         if om_rad[i]>0:
             plt.semilogy(times/gyr,densitys[0,:],label=uni[i]+': Radiation')
         if om_mat[i]>0:
