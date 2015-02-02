@@ -64,31 +64,56 @@ if __name__ == '__main__':
         #Note to future generations:
         # We need to change how the limits on 'As' are calculated based on which
         # universe we're in. The bulk beings are closing the tesseract!
+        
+        #Determine if the universe is closed or not.
+        if om_rad[i]+om_mat[i]+om_de[i] > 1:
             
-        if i==1: As = np.linspace(0,2,1000)
-        else: As = np.linspace(0,20,1000)
-        times = np.array([time(a,om_rad[i],om_mat[i],om_de[i],w[i]) for a in As])
-        hubbles = hubble(As,om_rad[i],om_mat[i],om_de[i],w[i])
-        densitys = density(As,om_rad[i],om_mat[i],om_de[i],w[i])
+            #Universe is closed
+            #Find the value of the maximum scale factor
+            max_scale = optimize.minimize(lambda x: adot(x,om_rad[i],om_mat[i],om_de[i],w[i]),1,method='Nelder-Mead',options={'xtol': 10**-10}).x[0]
+            
+            #Calculate the first half of the universe
+            As = np.linspace(0,max_scale,500)
+            times = np.array([time(a,om_rad[i],om_mat[i],om_de[i],w[i]) for a in As])
+            hubbles = hubble(As,om_rad[i],om_mat[i],om_de[i],w[i])
+            densitys = density(As,om_rad[i],om_mat[i],om_de[i],w[i])
+            
+            #Put my thing down, flip it, and reverse it
+            As = np.hstack((As,As[::-1]))
+            times = np.hstack((times,-times[::-1]+2*np.max(times)))
+            hubbles = np.hstack((hubbles,-hubbles[::-1]))
+            densitys = np.hstack((densitys,densitys[:,::-1]))
+            
+        else:
+            
+            #Universe is flat or open
+            As = np.linspace(0,20,1000)
+            times = np.array([time(a,om_rad[i],om_mat[i],om_de[i],w[i]) for a in As])
+            hubbles = hubble(As,om_rad[i],om_mat[i],om_de[i],w[i])
+            densitys = density(As,om_rad[i],om_mat[i],om_de[i],w[i])
         
         plt.plot(times/gyr,As,label=uni[i])
         plt.scatter(0,1,label='Today')
         plt.title('Scale Factor vs. Time')
         plt.xlabel('time [Gyr]')
         plt.ylabel('Scale Factor')
+        plt.xlim([np.min(times)/gyr,np.max(times)/gyr])
+        plt.ylim([0,np.max(As)])
         plt.legend(loc='best')
         plt.savefig(uni[i]+'_scale'+suffix)
         plt.close()
-      
-        plt.semilogy(times/gyr,70*hubbles/H0,label=uni[i])
-        plt.scatter(0,70,label='Today')
+        
+        plt.plot(times/gyr,np.arcsinh(hubbles*70/H0),label=uni[i])
+        plt.scatter(0,np.arcsinh(70),label='Today')
         plt.title('Hubble "Constant" vs. Time')
         plt.xlabel('time [Gyr]')
         plt.ylabel('log(H [km/s/Mpc])')
+        plt.xlim([np.min(times)/gyr,np.max(times)/gyr])
+        #plt.ylim([np.log10(np.min(hubbles)*70/H0),np.log10(np.max(hubbles)*70/H0)])
         plt.legend(loc='best')
         plt.savefig(uni[i]+'_hubble'+suffix)
         plt.close()
-          
+            
         if om_rad[i]>0:
             plt.semilogy(times/gyr,densitys[0,:],label=uni[i]+': Radiation')
         if om_mat[i]>0:
@@ -100,7 +125,9 @@ if __name__ == '__main__':
         plt.title('Density vs. Time')
         plt.xlabel('time [Gyr]')
         plt.ylabel('log(density/critical_0)')
+        plt.xlim([np.min(times)/gyr,np.max(times)/gyr])
+        #plt.ylim([np.log10(np.min(densitys!=0)),np.log10(np.max(densitys))])
         plt.legend(loc='best')
         plt.savefig(uni[i]+'_density'+suffix)
         plt.close()
-        
+         
