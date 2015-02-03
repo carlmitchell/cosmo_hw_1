@@ -57,7 +57,7 @@ if __name__ == '__main__':
     om_mat = np.array([1, 2, 0.3, 0.3, 0.3, 0.3])
     om_de = np.array([0, 0, 0, 0.7, 0.7, 0.7])
     w = np.array([-1, -1, -1, -1, -2/3., -4/3.])
-    uni = np.array(['EDS','Closed','Open','LCDM','Quint','Phant'])
+    uni = np.array(['EdS','Closed','Open','LCDM','Quint','Phant'])
     
     for i in range(len(uni)):
         
@@ -73,7 +73,7 @@ if __name__ == '__main__':
             max_scale = optimize.minimize(lambda x: adot(x,om_rad[i],om_mat[i],om_de[i],w[i]),1,method='Nelder-Mead',options={'xtol': 10**-10}).x[0]
             
             #Calculate the first half of the universe
-            As = np.linspace(0,max_scale,500)
+            As = np.linspace(0,max_scale,5000)
             times = np.array([time(a,om_rad[i],om_mat[i],om_de[i],w[i]) for a in As])
             hubbles = hubble(As,om_rad[i],om_mat[i],om_de[i],w[i])
             densitys = density(As,om_rad[i],om_mat[i],om_de[i],w[i])
@@ -91,43 +91,68 @@ if __name__ == '__main__':
             times = np.array([time(a,om_rad[i],om_mat[i],om_de[i],w[i]) for a in As])
             hubbles = hubble(As,om_rad[i],om_mat[i],om_de[i],w[i])
             densitys = density(As,om_rad[i],om_mat[i],om_de[i],w[i])
+
+        fig = plt.figure()
+        ax1 = plt.subplot2grid((2,2), (0,0))
+        ax2 = plt.subplot2grid((2,2), (0,1))
+        ax3 = plt.subplot2grid((2,2), (1,0))
+        ax4 = plt.subplot2grid((2,2), (1,1))
+
+        ax1.plot(times/gyr,As,label=uni[i],color='black')
+        ax1.scatter(0,1,label='Today',color='black')
+        ax1.set_title('Scale Factor vs. Time')
+        ax1.set_xlabel('time [Gyr]')
+        ax1.set_ylabel('Scale Factor')
+        ax1.set_xlim([np.min(times)/gyr,np.max(times)/gyr])
+        ax1.set_ylim([0,np.max(As)])
+        ax1.legend(loc='best', scatterpoints=1,prop={'size':8}, framealpha=0)
         
-        plt.plot(times/gyr,As,label=uni[i])
-        plt.scatter(0,1,label='Today')
-        plt.title('Scale Factor vs. Time')
-        plt.xlabel('time [Gyr]')
-        plt.ylabel('Scale Factor')
-        plt.xlim([np.min(times)/gyr,np.max(times)/gyr])
-        plt.ylim([0,np.max(As)])
-        plt.legend(loc='best')
-        plt.savefig(uni[i]+'_scale'+suffix)
-        plt.close()
+        ax2.plot(times/gyr,np.arcsinh(hubbles*70/H0),label=uni[i],color='black')
+        ax2.scatter(0,np.arcsinh(70),label='Today',color='black')
+        ax2.set_title('Hubble "Constant" vs. Time')
+        ax2.set_xlabel('time [Gyr]')
+        ax2.set_ylabel('H [km/s/Mpc]')
+        newticks = np.sinh(ax2.get_yticks())
+        ax2.set_yticklabels(["%.1e" % tick for tick in newticks])
+        ax2.set_xlim([np.min(times)/gyr,np.max(times)/gyr])
+        ax2.legend(loc='best', scatterpoints=1,prop={'size':8}, framealpha=0)
         
-        plt.plot(times/gyr,np.arcsinh(hubbles*70/H0),label=uni[i])
-        plt.scatter(0,np.arcsinh(70),label='Today')
-        plt.title('Hubble "Constant" vs. Time')
-        plt.xlabel('time [Gyr]')
-        plt.ylabel('log(H [km/s/Mpc])')
-        plt.xlim([np.min(times)/gyr,np.max(times)/gyr])
-        #plt.ylim([np.log10(np.min(hubbles)*70/H0),np.log10(np.max(hubbles)*70/H0)])
-        plt.legend(loc='best')
-        plt.savefig(uni[i]+'_hubble'+suffix)
-        plt.close()
-            
         if om_rad[i]>0:
-            plt.semilogy(times/gyr,densitys[0,:],label=uni[i]+': Radiation')
+            ax3.semilogy(times/gyr,densitys[0,:],label=uni[i]+': Radiation',color='red')
+            ax4.semilogy(times/gyr,densitys[0,:]/(hubbles/H0)**2,label=uni[i]+': Radiation',color='red')
         if om_mat[i]>0:
-            plt.semilogy(times/gyr,densitys[1,:],label=uni[i]+': Matter')
+            ax3.semilogy(times/gyr,densitys[1,:],label=uni[i]+': Matter',color='blue')
+            if i==0: #Special case for EdS universe because log plot is bad
+                ax4.plot(times/gyr,densitys[1,:]/(hubbles/H0)**2,label=uni[i]+': Matter',color='blue')
+                ax4.set_ylim([0,2])
+            else:
+                ax4.semilogy(times/gyr,densitys[1,:]/(hubbles/H0)**2,label=uni[i]+': Matter',color='blue')
         if om_de[i]>0:
-            plt.semilogy(times/gyr,densitys[2,:],label=uni[i]+': Dark Energy')
-        plt.semilogy(times/gyr,densitys[3,:],label=uni[i]+': Total')
-        plt.scatter([0,0,0,0],[om_rad[i],om_mat[i],om_de[i],om_rad[i]+om_mat[i]+om_de[i]],label='Today')
-        plt.title('Density vs. Time')
-        plt.xlabel('time [Gyr]')
-        plt.ylabel('log(density/critical_0)')
-        plt.xlim([np.min(times)/gyr,np.max(times)/gyr])
-        #plt.ylim([np.log10(np.min(densitys!=0)),np.log10(np.max(densitys))])
-        plt.legend(loc='best')
-        plt.savefig(uni[i]+'_density'+suffix)
+            ax3.semilogy(times/gyr,densitys[2,:],label=uni[i]+': Dark Energy',color='green')
+            ax4.semilogy(times/gyr,densitys[2,:]/(hubbles/H0)**2,label=uni[i]+': Dark Energy',color='green')
+        ax3.semilogy(times/gyr,densitys[3,:],label=uni[i]+': Total',color='black')
+        if i==0: #Special case for EdS universe because log plot is bad
+            ax4.plot(times/gyr,densitys[3,:]/(hubbles/H0)**2,label=uni[i]+': Total',color='black')
+        else:
+            ax4.semilogy(times/gyr,densitys[3,:]/(hubbles/H0)**2,label=uni[i]+': Total',color='black')
+        ax3.scatter([0,0,0,0],[om_rad[i],om_mat[i],om_de[i],om_rad[i]+om_mat[i]+om_de[i]],label='Today',color='black')
+        if i==0: #Special case for EdS universe because log plot is bad
+            ax4.scatter([0],[om_mat[i]],label='Today',color='black')
+        else:
+            ax4.scatter([0,0,0,0],[om_rad[i],om_mat[i],om_de[i],om_rad[i]+om_mat[i]+om_de[i]],label='Today',color='black')
+        ax3.set_title('Density vs. Time')
+        ax3.set_xlabel('time [Gyr]')
+        ax3.set_ylabel('density/critical_0')
+        ax3.set_xlim([np.min(times)/gyr,np.max(times)/gyr])
+        ax3.legend(loc='best', scatterpoints=1,prop={'size':8}, framealpha=0)
+        ax4.set_title('Density vs. Time')
+        ax4.set_xlabel('time [Gyr]')
+        ax4.set_ylabel('density/critical(t)')
+        ax4.set_xlim([np.min(times)/gyr,np.max(times)/gyr])
+        ax4.legend(loc='best', scatterpoints=1,prop={'size':8}, framealpha=0)
+        
+        #Save the figure to file and close
+        plt.tight_layout()
+        plt.savefig(uni[i]+suffix)
         plt.close()
-         
+        
