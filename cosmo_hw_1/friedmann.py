@@ -7,6 +7,8 @@ H0 = 70/(3.08567758*10**19) #Hubble constant today in s^-1 (70 km/s/Mpc)
 gyr = 3.15569*10**16 #Number of seconds in a Gyr
 suffix = '.png'
 
+plt.rc('font', family='serif') #Changes all plotting fonts.
+
 def adot(a,om_rad,om_mat,om_de,w):
     """Calculates the time derivative of the scale factor when the scale
     factor is 'a'
