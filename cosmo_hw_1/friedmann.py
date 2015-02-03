@@ -6,6 +6,8 @@ from scipy import optimize
 H0 = 70/(3.08567758*10**19) #Hubble constant today in s^-1 (70 km/s/Mpc)
 gyr = 3.15569*10**16 #Number of seconds in a Gyr
 suffix = '.png'
+#rad_den = 0.0001
+rad_den = 0
 
 plt.rc('font', family='serif') #Changes all plotting fonts.
 
@@ -59,8 +61,14 @@ if __name__ == '__main__':
     om_mat = np.array([1, 2, 0.3, 0.3, 0.3, 0.3])
     om_de = np.array([0, 0, 0, 0.7, 0.7, 0.7])
     w = np.array([-1, -1, -1, -1, -2/3., -4/3.])
-    uni = np.array(['EdS','Closed','Open','LCDM','Quint','Phant'])
+    uni = ['EdS','Closed','Open','LCDM','Quint','Phant']
     npoints = 10000
+
+    if rad_den != 0:
+        om_rad = om_rad+rad_den
+        om_mat = om_mat-rad_den
+        for i in range(len(uni)):
+            uni[i] = uni[i]+'+R'
     
     for i in range(len(uni)):
         
