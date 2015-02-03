@@ -60,12 +60,9 @@ if __name__ == '__main__':
     om_de = np.array([0, 0, 0, 0.7, 0.7, 0.7])
     w = np.array([-1, -1, -1, -1, -2/3., -4/3.])
     uni = np.array(['EdS','Closed','Open','LCDM','Quint','Phant'])
+    npoints = 10000
     
     for i in range(len(uni)):
-        
-        #Note to future generations:
-        # We need to change how the limits on 'As' are calculated based on which
-        # universe we're in. The bulk beings are closing the tesseract!
         
         #Determine if the universe is closed or not.
         if om_rad[i]+om_mat[i]+om_de[i] > 1:
@@ -75,7 +72,7 @@ if __name__ == '__main__':
             max_scale = optimize.minimize(lambda x: adot(x,om_rad[i],om_mat[i],om_de[i],w[i]),1,method='Nelder-Mead',options={'xtol': 10**-10}).x[0]
             
             #Calculate the first half of the universe
-            As = np.linspace(0,max_scale,5000)
+            As = np.linspace(0,max_scale,npoints/2)
             times = np.array([time(a,om_rad[i],om_mat[i],om_de[i],w[i]) for a in As])
             hubbles = hubble(As,om_rad[i],om_mat[i],om_de[i],w[i])
             densitys = density(As,om_rad[i],om_mat[i],om_de[i],w[i])
@@ -89,7 +86,7 @@ if __name__ == '__main__':
         else:
             
             #Universe is flat or open
-            As = np.linspace(0,20,1000)
+            As = np.linspace(0,20,npoints)
             times = np.array([time(a,om_rad[i],om_mat[i],om_de[i],w[i]) for a in As])
             hubbles = hubble(As,om_rad[i],om_mat[i],om_de[i],w[i])
             densitys = density(As,om_rad[i],om_mat[i],om_de[i],w[i])
@@ -103,8 +100,8 @@ if __name__ == '__main__':
         ax1.plot(times/gyr,As,label=uni[i],color='black')
         ax1.scatter(0,1,label='Today',color='black')
         ax1.set_title('Scale Factor vs. Time')
-        ax1.set_xlabel('time [Gyr]')
-        ax1.set_ylabel('Scale Factor')
+        ax1.set_xlabel(r'$t$ [Gyr]')
+        ax1.set_ylabel(r'$a$')
         ax1.set_xlim([np.min(times)/gyr,np.max(times)/gyr])
         ax1.set_ylim([0,np.max(As)])
         ax1.legend(loc='best', scatterpoints=1,prop={'size':8}, framealpha=0)
@@ -112,10 +109,15 @@ if __name__ == '__main__':
         ax2.plot(times/gyr,np.arcsinh(hubbles*70/H0),label=uni[i],color='black')
         ax2.scatter(0,np.arcsinh(70),label='Today',color='black')
         ax2.set_title('Hubble "Constant" vs. Time')
-        ax2.set_xlabel('time [Gyr]')
-        ax2.set_ylabel('H [km/s/Mpc]')
+        ax2.set_xlabel(r'$t$ [Gyr]')
+        ax2.set_ylabel(r'$H$ [km/s/Mpc]')
         newticks = np.sinh(ax2.get_yticks())
-        ax2.set_yticklabels(["%.1e" % tick for tick in newticks])
+        newticks = ["%.1e" % tick for tick in newticks]
+        for j in range(len(newticks)):
+            [mant,exp] = newticks[j].split('e')
+            exp = str(int(exp))
+            newticks[j] = r'${!s}\times 10^{!s}$'.format(mant,exp)
+        ax2.set_yticklabels(newticks)
         ax2.set_xlim([np.min(times)/gyr,np.max(times)/gyr])
         ax2.legend(loc='best', scatterpoints=1,prop={'size':8}, framealpha=0)
         
@@ -142,14 +144,16 @@ if __name__ == '__main__':
             ax4.scatter([0],[om_mat[i]],label='Today',color='black')
         else:
             ax4.scatter([0,0,0,0],[om_rad[i],om_mat[i],om_de[i],om_rad[i]+om_mat[i]+om_de[i]],label='Today',color='black')
+            
         ax3.set_title('Density vs. Time')
-        ax3.set_xlabel('time [Gyr]')
-        ax3.set_ylabel('density/critical_0')
+        ax3.set_xlabel(r'$t$ [Gyr]')
+        ax3.set_ylabel(r'$\rho/\rho_{c,0}$')
         ax3.set_xlim([np.min(times)/gyr,np.max(times)/gyr])
         ax3.legend(loc='best', scatterpoints=1,prop={'size':8}, framealpha=0)
+        
         ax4.set_title('Density vs. Time')
-        ax4.set_xlabel('time [Gyr]')
-        ax4.set_ylabel('density/critical(t)')
+        ax4.set_xlabel(r'$t$ [Gyr]')
+        ax4.set_ylabel(r'$\rho/\rho_c(t)$')
         ax4.set_xlim([np.min(times)/gyr,np.max(times)/gyr])
         ax4.legend(loc='best', scatterpoints=1,prop={'size':8}, framealpha=0)
         
