@@ -6,7 +6,7 @@ from scipy import optimize
 H0 = 70/(3.08567758*10**19) #Hubble constant today in s^-1 (70 km/s/Mpc)
 gyr = 3.15569*10**16 #Number of seconds in a Gyr
 suffix = '.png'
-#rad_den = 0.0001
+#rad_den = 5.04*10**(-5)
 rad_den = 0
 
 plt.rc('font', family='serif') #Changes all plotting fonts.
@@ -98,6 +98,17 @@ if __name__ == '__main__':
             times = np.array([time(a,om_rad[i],om_mat[i],om_de[i],w[i]) for a in As])
             hubbles = hubble(As,om_rad[i],om_mat[i],om_de[i],w[i])
             densitys = density(As,om_rad[i],om_mat[i],om_de[i],w[i])
+            
+        #Determine if the universe goes to infinite size in finite time.
+        if w[i]<-1:
+            
+            print "Universe "+uni[i]+" goes to infinite scale factor at time:"
+            print time(10**3,om_rad[i],om_mat[i],om_de[i],w[i])
+            print time(10**4,om_rad[i],om_mat[i],om_de[i],w[i])
+            print time(10**5,om_rad[i],om_mat[i],om_de[i],w[i])
+            print time(10**6,om_rad[i],om_mat[i],om_de[i],w[i])
+
+        print uni[i]+' Age: ',times[0]
 
         fig = plt.figure()
         ax1 = plt.subplot2grid((2,2), (0,0))
@@ -107,7 +118,7 @@ if __name__ == '__main__':
 
         ax1.plot(times/gyr,As,label=uni[i],color='black')
         ax1.scatter(0,1,label='Today',color='black')
-        ax1.set_title('Scale Factor vs. Time')
+        ax1.set_title('Scale Factor')
         ax1.set_xlabel(r'$t$ [Gyr]')
         ax1.set_ylabel(r'$a$')
         ax1.set_xlim([np.min(times)/gyr,np.max(times)/gyr])
@@ -116,7 +127,7 @@ if __name__ == '__main__':
         
         ax2.plot(times/gyr,np.arcsinh(hubbles*70/H0),label=uni[i],color='black')
         ax2.scatter(0,np.arcsinh(70),label='Today',color='black')
-        ax2.set_title('Hubble "Constant" vs. Time')
+        ax2.set_title('Hubble "Constant"')
         ax2.set_xlabel(r'$t$ [Gyr]')
         ax2.set_ylabel(r'$H$ [km/s/Mpc]')
         newticks = np.sinh(ax2.get_yticks())
@@ -153,13 +164,13 @@ if __name__ == '__main__':
         else:
             ax4.scatter([0,0,0,0],[om_rad[i],om_mat[i],om_de[i],om_rad[i]+om_mat[i]+om_de[i]],label='Today',color='black')
             
-        ax3.set_title('Density vs. Time')
+        ax3.set_title('Density')
         ax3.set_xlabel(r'$t$ [Gyr]')
         ax3.set_ylabel(r'$\rho/\rho_{c,0}$')
         ax3.set_xlim([np.min(times)/gyr,np.max(times)/gyr])
         ax3.legend(loc='best', scatterpoints=1,prop={'size':8}, framealpha=0)
         
-        ax4.set_title('Density vs. Time')
+        ax4.set_title('Density')
         ax4.set_xlabel(r'$t$ [Gyr]')
         ax4.set_ylabel(r'$\rho/\rho_c(t)$')
         ax4.set_xlim([np.min(times)/gyr,np.max(times)/gyr])
